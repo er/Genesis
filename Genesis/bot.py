@@ -5,10 +5,10 @@ import sys
 from datetime import datetime
 
 import asyncpg
+import constants
 import discord
 from discord.ext import commands
 
-import constants
 from Genesis import config
 from Genesis.config import TOKEN
 
@@ -48,7 +48,6 @@ class Genesis(commands.AutoShardedBot):
     def setup_database(self) -> None:
         """Open a persistent asyncpg pool and create default tables"""
         loop = asyncio.get_event_loop()
-        print(config.POSTGRES_STRING)
         self.pool = loop.run_until_complete(asyncpg.create_pool(config.POSTGRES_STRING))
         self.logger.info("Successfully connected to Postgres")
         loop.run_until_complete(self.pool.execute(constants.CREATE_TABLES))
