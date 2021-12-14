@@ -4,7 +4,8 @@ CREATE_TABLES = (
         item_id SERIAL PRIMARY KEY UNIQUE,
         item_name TEXT,
         buy_price INTEGER DEFAULT NULL,
-        sell_price INTEGER DEFAULT NULL
+        sell_price INTEGER DEFAULT NULL,
+        item_type TEXT DEFAULT NULL
     )
     """,
     """
