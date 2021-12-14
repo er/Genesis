@@ -50,7 +50,8 @@ class Genesis(commands.AutoShardedBot):
         loop = asyncio.get_event_loop()
         self.pool = loop.run_until_complete(asyncpg.create_pool(config.POSTGRES_STRING))
         self.logger.info("Successfully connected to Postgres")
-        loop.run_until_complete(self.pool.execute(constants.CREATE_TABLES))
+        for table in constants.CREATE_TABLES:
+            loop.run_until_complete(self.pool.execute(table))
         self.logger.info("Successfully created default tables")
 
     def load_extensions(self) -> None:
