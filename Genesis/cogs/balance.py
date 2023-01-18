@@ -31,5 +31,5 @@ class Balance(commands.Cog):
             await ctx.send(embed=await generate_embed("Please specify a valid user!"))
 
 
-def setup(bot):
-    bot.add_cog(Balance(bot))
+async def setup(bot):
+    await bot.add_cog(Balance(bot))

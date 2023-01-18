@@ -12,10 +12,10 @@ class Pay(commands.Cog):
             return await ctx.reply(
                 embed=discord.Embed(
                     description="You must specify a member to send money to!",
-                    colour=000000
+                    colour=000000,
                 )
             )
 
 
-def setup(bot):
-    bot.add_cog(Pay(bot))
+async def setup(bot):
+    await bot.add_cog(Pay(bot))

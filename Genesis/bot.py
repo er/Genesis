@@ -1,90 +1,46 @@
-import asyncio
-import logging.handlers
 import os
-import sys
-from datetime import datetime
 
 import asyncpg
-import constants
+import config
 import discord
 from discord.ext import commands
 
-from Genesis import config
-from Genesis.config import TOKEN
-
-
-# noinspection PyArgumentList
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(levelname)s | %(asctime)s | %(name)s | %(message)s",
-    handlers=[
-        logging.StreamHandler(stream=sys.stdout),
-    ],
-)
-
-start_time = datetime.now().strftime("%d/%m/%Y | %H:%M")
+from Genesis import constants
 
 
 class Genesis(commands.AutoShardedBot):
     def __init__(self):
         super().__init__(
-            command_prefix=".",
+            command_prefix="!",
             case_insensitive=True,
-            intents=discord.Intents.default(),
+            intents=discord.Intents.all(),
         )
-        self.logger = logging.getLogger("Genesis")
+        self.ready = False
         self.pool = None
 
-    @staticmethod
-    def setup_logging() -> None:
-        logging.getLogger("discord").setLevel(logging.INFO)
-        logging.getLogger("discord.http").setLevel(logging.WARNING)
-        logging.basicConfig(
-            level=logging.INFO,
-            format="%(levelname)s | %(asctime)s | %(name)s | %(message)s",
-            stream=sys.stdout,
-        )
-
-    def setup_database(self) -> None:
-        """Open a persistent asyncpg pool and create default tables"""
-        loop = asyncio.get_event_loop()
-        self.pool = loop.run_until_complete(asyncpg.create_pool(config.POSTGRES_STRING))
-        self.logger.info("Successfully connected to Postgres")
-        for table in constants.CREATE_TABLES:
-            loop.run_until_complete(self.pool.execute(table))
-        self.logger.info("Successfully created default tables")
-
-    def load_extensions(self) -> None:
-        for filename in os.listdir("./cogs"):
-            if filename.endswith(".py"):
-                self.load_extension(f"cogs.{filename[:-3]}")
-                self.logger.info(f"Successfully loaded {filename[:-3]}")
+    async def load_cogs(self, directory="./cogs") -> None:
+        for file in os.listdir(directory):
+            if file.endswith(".py") and not file.startswith("_"):
+                await self.load_extension(
+                    f"{directory[2:].replace('/', '.')}.{file[:-3]}"
+                )
+            elif not (
+                file in ["__pycache__"] or file.endswith(("pyc", "txt"))
+            ) and not file.startswith("_"):
+                await self.load_cogs(f"{directory}/{file}")
 
     async def on_ready(self):
-        self.remove_command("help")
-
-    async def on_command_error(self, ctx, error):
-        ignored = (
-            commands.CommandNotFound,
-            commands.DisabledCommand,
-            commands.NoPrivateMessage,
-            commands.CheckFailure,
-        )
-
-        if isinstance(error, ignored):
-            return
-
-        if hasattr(ctx.command, "on_error"):
-            return
-
-        error = getattr(error, "original", error)
-
-        raise error
+        if not self.ready:
+            self.pool = await asyncpg.create_pool(
+                config.POSTGRES_STRING,
+            )
+            for table in constants.CREATE_TABLES:
+                await self.pool.execute(table)
+            await self.load_cogs()
+            self.ready = True
 
 
 if __name__ == "__main__":
     bot = Genesis()
-    bot.setup_logging()
-    bot.setup_database()
-    bot.load_extensions()
-    bot.run(TOKEN)
+    bot.remove_command("help")
+    bot.run(config.TOKEN)

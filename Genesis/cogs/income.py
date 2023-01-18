@@ -34,13 +34,13 @@ class Income(commands.Cog):
         )
         return await generate_embed(job.replace("%amt%", f"${amount}"))
 
-    async def get_cooldown(self, ctx) -> int:
+    async def get_cooldown(self, ctx) -> float:
         """Returns the cooldown left"""
         bucket = self._cd.get_bucket(ctx.message)
         return bucket.update_rate_limit()
 
     @commands.command(aliases=["w"])
-    async def work(self, ctx) -> discord.Embed:
+    async def work(self, ctx) -> discord.Message:
         if (cooldown := await self.get_cooldown(ctx)) is not None:
             if isinstance(cooldown, float) or isinstance(cooldown, int):
                 return await ctx.send(
@@ -51,7 +51,7 @@ class Income(commands.Cog):
         return await ctx.reply(embed=await self.generate_job(ctx.author.id))
 
     @commands.command(aliases=["daily", "weekly", "monthly"])
-    async def _interval_rewards(self, ctx) -> discord.Embed:
+    async def _interval_rewards(self, ctx) -> discord.Message:
         interval = ctx.invoked_with.lower()
         last_claimed = await self.bot.pool.fetchval(
             f"SELECT {interval}_claimed_at FROM users WHERE discord_id=$1",
@@ -81,5 +81,5 @@ class Income(commands.Cog):
         )
 
 
-def setup(bot):
-    bot.add_cog(Income(bot))
+async def setup(bot):
+    await bot.add_cog(Income(bot))
