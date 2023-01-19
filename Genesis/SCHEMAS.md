@@ -53,3 +53,17 @@ BEGIN
     DELETE FROM Inventory WHERE user_id = OLD.user_id;
     DELETE FROM Upgrades WHERE user_id = OLD.user_id;
 END;
+
+
+Farms table:
+
+user_id (foreign key referencing the users table)
+farm_id (primary key)
+Farm slots table:
+
+farm_id (foreign key referencing the farms table)
+slot_id (primary key)
+slot_number (integer)
+item_id (foreign key referencing the items table)
+planted_time (timestamp)
+growth_time (time duration)
