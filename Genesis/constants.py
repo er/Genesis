@@ -1,33 +1,45 @@
 CREATE_TABLES = (
     """
-    CREATE TABLE IF NOT EXISTS item_info(
-        item_id SERIAL PRIMARY KEY UNIQUE,
-        item_name TEXT,
-        buy_price INTEGER DEFAULT NULL,
-        sell_price INTEGER DEFAULT NULL,
-        item_type TEXT DEFAULT NULL
-    )
-    """,
-    """
     CREATE TABLE IF NOT EXISTS users(
-        user_id SERIAL PRIMARY KEY UNIQUE,
-        discord_id BIGINT NOT NULL,
-        balance INTEGER DEFAULT 0,
-        multiplier INT NOT NULL DEFAULT 1,
-        daily_claimed_at BIGINT NOT NULL DEFAULT 0,
-        weekly_claimed_at BIGINT NOT NULL DEFAULT 0,
-        monthly_claimed_at BIGINT NOT NULL DEFAULT 0
+        user_id BIGINT PRIMARY KEY,
+        balance INT
     )
     """,
     """
-    CREATE TABLE IF NOT EXISTS user_inventory(
-        user_id INTEGER NOT NULL,
-        item_id INTEGER NOT NULL,
-        count INTEGER NOT NULL DEFAULT 0,
-        FOREIGN KEY(item_id) REFERENCES item_info(item_id) ON DELETE CASCADE,
-        FOREIGN KEY(user_id) REFERENCES users(user_id) ON DELETE CASCADE
+    CREATE TABLE IF NOT EXISTS user_farms(
+        user_id BIGINT,
+        farm_id SERIAL PRIMARY KEY,
+        farm_size INT DEFAULT 9,
+        FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE        
     )
     """,
+    """
+    CREATE TABLE IF NOT EXISTS farms(
+        farm_id INT,
+        planted_seed_id INT,
+        planted_at BIGINT,
+        finished_at BIGINT,
+        FOREIGN KEY (farm_id) REFERENCES user_farms(farm_id) ON DELETE CASCADE
+    )
+    """
+)
+
+RUN_ONCE = (
+    """
+    CREATE OR REPLACE FUNCTION insert_user_farms()
+    RETURNS TRIGGER AS $$
+    BEGIN
+        INSERT INTO user_farms(user_id, farm_id) VALUES (NEW.user_id, Default);
+        RETURN NEW;
+    END;
+    $$ LANGUAGE plpgsql;
+    """,
+    """
+    CREATE OR REPLACE TRIGGER create_user
+    AFTER INSERT ON users
+    FOR EACH ROW
+    EXECUTE FUNCTION insert_user_farms();
+    """
 )
 
 
