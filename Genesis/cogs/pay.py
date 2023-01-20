@@ -1,4 +1,5 @@
 import discord
+from discord import app_commands
 from discord.ext import commands
 
 
@@ -6,15 +7,15 @@ class Pay(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command()
-    async def pay(self, ctx, user: discord.User = None) -> discord.Embed:
-        if user is None:
-            return await ctx.reply(
-                embed=discord.Embed(
-                    description="You must specify a member to send money to!",
-                    colour=000000,
-                )
-            )
+    @app_commands.command(name="pay")
+    @app_commands.guilds(discord.Object(id=config.GUILD))
+    async def pay(self, interaction: discord.Interaction, user: discord.Member, amount: int):
+        await interaction.response.defer()
+        curr_bal = await self.bot.pool.fetchval(
+            "SELECT balance FROM users WHERE user_id=$1", interaction.user.id
+        )
+        if curr_bal is None or curr_bal < amount:
+            return await interaction.follow.send("You do not have enough money!")
 
 
 async def setup(bot):
