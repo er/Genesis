@@ -1,15 +1,26 @@
+from typing import List
+
 from pydantic import BaseModel
 
+from Genesis.objects.farms import Farm
+
+
 class Player(BaseModel):
-    player_id: int
+    user_id: int
     balance: int
-    farms: List[Farm]
+    farm_id: int
+    farm_size: int
 
-    async def pay(user: Player, amount: int) -> bool:
-        return False
+    class Config:
+        orm_mode = True
+        allow_population_by_field_name = True
 
-    async def add(user: Player) -> bool:
-        return False
+    async def pay(self, user, amount: int) -> bool:
+        pass
 
-    async def remove(user: Player) -> bool:
-        return False
+    async def add(self, user) -> bool:
+        pass
+
+    async def remove(self, user) -> bool:
+        pass
+

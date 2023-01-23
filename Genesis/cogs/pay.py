@@ -2,6 +2,8 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
+from Genesis import config
+
 
 class Pay(commands.Cog):
     def __init__(self, bot):
@@ -15,7 +17,7 @@ class Pay(commands.Cog):
             "SELECT balance FROM users WHERE user_id=$1", interaction.user.id
         )
         if curr_bal is None or curr_bal < amount:
-            return await interaction.follow.send("You do not have enough money!")
+            return await interaction.followup.send("You do not have enough money!")
 
 
 async def setup(bot):

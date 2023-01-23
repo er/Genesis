@@ -9,13 +9,15 @@ class Core(commands.Cog):
         self.bot = bot
 
     async def bot_check(self, ctx):
-        if ctx.author.id != await self.bot.pool.fetchval(
-            "SELECT user_id FROM users WHERE user_id=$1", ctx.author.id
-        ):
-            await self.bot.pool.execute(
-                "INSERT INTO users VALUES($1, 100)", ctx.author.id
-            )
+        if not await self.bot.db.user_exists(ctx.author):
+            await self.bot.db.create_user(ctx.author)
         return True
+
+    @commands.command()
+    async def test(self, ctx):
+        player = await self.bot.db.get_user(ctx.author)
+        print(dict(player))
+        print(player.balance, player.farm_id)
 
     @commands.command()
     async def sync(self, ctx):

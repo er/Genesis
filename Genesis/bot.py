@@ -5,7 +5,7 @@ import config
 import discord
 from discord.ext import commands
 
-from Genesis import constants
+from Genesis.objects.database import DB
 
 
 class Genesis(commands.AutoShardedBot):
@@ -16,7 +16,12 @@ class Genesis(commands.AutoShardedBot):
             intents=discord.Intents.all(),
         )
         self.ready = False
-        self.pool = None
+        # self.pool = None
+        self.db: DB = DB(self)
+        print(self.db)
+
+    async def setup_hook(self) -> None:
+        await self.db.connect()
 
     async def load_cogs(self, directory="./cogs") -> None:
         for file in os.listdir(directory):
@@ -31,11 +36,13 @@ class Genesis(commands.AutoShardedBot):
 
     async def on_ready(self):
         if not self.ready:
+            """
             self.pool = await asyncpg.create_pool(
                 config.POSTGRES_STRING,
             )
             for table in constants.CREATE_TABLES:
                 await self.pool.execute(table)
+            """
             await self.load_cogs()
             self.ready = True
 
